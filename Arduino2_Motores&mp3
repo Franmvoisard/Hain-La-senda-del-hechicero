@@ -1,0 +1,45 @@
+#include <IRremote.h>
+
+const byte _motores[2] = {5, 6}; // Motores en los pines 5 y 6 del arduino NANO 1
+bool vibrando = false;
+
+int IRpin = 3;
+IRrecv irrecv(IRpin);
+decode_results results;
+
+void setup() {
+
+  for (int i = 2; i = < 2; i++)  { //Setear los motores en estado bajo
+    pinMode(_motores[i], LOW);
+    analogWrite(_motores[i] , 0);
+  }
+}
+
+void loop() {
+  receiveIR();
+  actualizarVibracion();
+
+}
+
+void vibrar(long intensidadInicio, long intensidadFin, byte motor, int cantidad, long tiempoInicio, long tiempoFin) {
+vibrando = true;
+}
+
+void actualizarVibracion() {
+ if (vibrando=true){
+  analogWrite(_motores[motor], intensidad)
+}}
+
+void receiveIR() {
+  // Aca el llamado a la funcion que lee el IR, te guardas el valor en cmd para saber para donde switchear
+  if (irrecv.decode(&results)) {
+    int cmd = results.value;
+    Serial.print(cmd);
+    switch (cmd) {
+
+        //////////////////////////////////FUNCIONES/////////////////////////////////
+
+    }
+    irrecv.resume();
+  }
+}
