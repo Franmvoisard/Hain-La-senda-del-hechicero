@@ -11,12 +11,12 @@ const byte BLUE[3] = {0,0,255};
 
 byte _lastColor[3] = {0,0,0};
 byte _toColor[3] = {0,0,0};
-byte _actualColor[3] = {0,0,0};
+byte _actualColor[3] = {255,0,0};
 
 long _now, _last = 0, _transColor = 0;
 long _blinkTime;
 boolean _changingColor = false, _blinking = false, _blinkOff = true;
-int _colorIndex = 0, _countBlink, _totalBlink = 0;
+float _colorIndex = 0, _countBlink, _totalBlink = 0, fraction = 0;
 
 int IRpin = 2;
 IRrecv irrecv(IRpin);
@@ -50,9 +50,9 @@ void receiveIR() {
 	case 2065:
 	  blinkOnColor(BLUE, INTERVALO_CORTO, 3);	// Parpadear 3 veces, en intervalos cortos, desde blue a apagado.
 	  break;
-  case 2080:
-    blinkOnColor(RED, INTERVALO_CORTO,2);
-    break;
+  	case 2080:
+      blinkOnColor(RED, INTERVALO_CORTO,2);
+	  break;
 		
   }
   irrecv.resume();
@@ -65,9 +65,13 @@ void refreshLeds() {
   } else if(_blinking) {
 	refreshBlink();
   }
+  Serial.print("Color: (");
   for(int i = 0; i < 3; i++) {	// El color actual siempre esta guardado en _actualColor, por lo cual actualizo.
 	analogWrite(_pinLedA[i], _actualColor[i]);
+	Serial.print(_actualColor[i]);
+	Serial.print(", ");
   }
+  Serial.println(")");
 }
 
 void changeColor(long inTime, byte toColor[3]) {  // Recibe en cuanto tiempo debe durar la transicion de color, y hacia que color
@@ -94,22 +98,23 @@ void blinkOnColor(byte onColor[3], long blinkTime, int blinks) {
 
 void refreshBlink() {
 	_now = millis();
-	if(_now - _last < _blinkTime) {
+	if(_now - _last <= _blinkTime) {
 		if(_countBlink >= _totalBlink){		// Si parpadeo todas las veces que se le pidio
 			_blinking = false;				// deja de parpadear
+			return;
 		} else {
-			int fraction = floor((_blinkTime / (_now - _last)));	// Sino, calcula la fraccion de tiempo que paso respecto de el tiempo por parpadeo total
+			fraction = (( _now - _last) * 100) / _blinkTime;	// El porcentaje de tiempo transcurrido respecto al seteado
 			if(_blinkOff) {											// Si tiene color, y deberia ir hacia apagado
 				for(int i = 0; i < 3; i++)
-					_actualColor[i] = _lastColor[i] - (_lastColor[i] / fraction);	// Al color con el que comenzo, se le resta la 
-																					//fraccion del color correspondiente al tiempo transcurrido
+					_actualColor[i] = _lastColor[i] - (_lastColor[i] * (fraction / 100));	// Se calcula la diferencia entre el color de salida y el color de llegada
+																					// Y se aplica el porcentaje correspondiente al tiempo transcurrido
 			} else {												// Si llego a apagarse, y se deberia estar encendiendo
 				for(int i = 0; i < 3; i++)
-					_actualColor[i] = (_lastColor[i] / fraction);
+					_actualColor[i] = (_lastColor[i] * (fraction / 100));	// Si se tiene que apagar, hay que restarle
 			}
 		}
-	} else if(_now - _last >= _blinkTime) {		// Cuando termino la transicion, hacia apagado u encendido
-		_last = millis();						// Se toma un nuevo muestreo para contar el la otra parte del parpadeo
+	} else {		// Cuando termino la transicion, hacia apagado u encendido
+		_last = millis();						// Se toma un nuevo muestreo para contar la otra parte del parpadeo
 		_blinkOff = !_blinkOff;					// Si se estaba apagando, ahora se va a prender, o viceversa
 		if(_blinkOff)								// Hago el conteo de parpadeo solo para cuando prende, o solo para cuando apaga.
 			_countBlink++;
@@ -119,13 +124,14 @@ void refreshBlink() {
 void refreshChange() {
 	_now = millis();      // Tomo el muestro de tiempo actual
     if(_now - _last <= _transColor){     // Si la diferencia es menor/igual a lo que deberia durar la transicion
-      _colorIndex = floor(_transColor / (_now - _last));      // Me guardo en _colorIndex el denominador de la fraccion que representa la transicion
+      _colorIndex = ((_now - _last) * 100) / _transColor;      // Me guardo en _colorIndex el porcentaje que debo aplicar
       for(int i = 0; i < 3; i++) {                    // Si la transicion debe durar 10 segundos, y pasaron 5, _colorIndex = 2, entonces la diferencia entre el color al 
-        _actualColor[i] = ((_toColor[i] - _lastColor[i]) / _colorIndex) + _lastColor;    // que se quiere llegar, y al que se tenia en un comienzo, es el total / 2, la mitad.
+        _actualColor[i] = _lastColor[i] + ((_toColor[i] - _lastColor[i])  * (_colorIndex / 100));    // que se quiere llegar, y al que se tenia en un comienzo, es el total / 2, la mitad.
       }
     } else {                  
       _changingColor = false;
       for(int i = 0; i < 3; i++) {
+      	_actualColor[i] = _toColor[i];
         _lastColor[i] = _actualColor[i];
       }
     }
