@@ -42,12 +42,6 @@ void setup() {
 void loop() {
   receiveIR();
   refreshLeds();
-  Serial.print("Color: (");
-  for(byte i = 0; i < 3; i++) {
-  	Serial.print(_actualColor[i]);
-  	Serial.print(", ");
-  }
-  Serial.println(")");
 }  
 
 void receiveIR() {
