@@ -1,45 +1,102 @@
+//Definiciones
+ #define Vol_plus 2064;  //[PODESIRNOS]
+ #define Vol_min 2065;   //[TEGUSTANLOSPIRATAS]
+ #define Ch_plus 2080;   //[PODESVERNOS]
+ #define Ch_min 2081;    //[QUERESPELEAR]  
+ #define Uno 2049;       //[TENESALMA] 
+ #define Dos 2050;       //[SOMOSAMIGOS] 
+ #define Tres 2051;      //[CORAZONLENTO]
+ #define Cuatro 2052;    //[CORAZONRAPIDO] 
+ #define Cinco 2053;     //[VARITAENOJO] 
+ #define Seis 2054;      //[VIENTO] 
+ #define Siete 2055;     //[PAJAROS]
+ #define Ocho 2056;      //[POSESION]
+ #define Nueve 2057;     //[GIROSCOPIO]
+ #define motorbase 5;    //Micromotor vibrador en el pin 5 de Arduino.
+ #define motormedio 6;   //Motor en el pin 6 del Arduino
+ #define INTERRUPT_PIN 3;//Pin de interrupción (INT de Giroscopio como D2 de arduino
+ #define LedRojo 6;      //Pin de Led Rojo
+ #define LedVerde 9;     //Pin de Led verde
+ #define LedAzul 10;     //Pin de Led Azul
+
+//Librerías
+#include "I2Cdev.h"
 #include <IRremote.h>
+#include <SoftwareSerial.h>
+#include <DFPlayer_Mini_Mp3.h>
+#include "MPU6050.h"
+#include "Wire.h"
 
-const byte _motores[2] = {5, 6}; // Motores en los pines 5 y 6 del arduino NANO 1
-bool vibrando = false;
+unsigned long int _ahora = 0;
+unsigned long int _ultimo = 0;
 
-int IRpin = 3;
-IRrecv irrecv(IRpin);
-decode_results results;
+const byte Motorbase = 5;
+const byte Motormedio = 6;
 
-void setup() {
+int _vibracionActualMB = 0;
+int _vibracionActualMM = 0;
+int _ultimaVibracionMB = 0;
+int _ultimaVibracionMM = 0;
+bool _vibrando = false;
 
-  for (int i = 2; i = < 2; i++)  { //Setear los motores en estado bajo
-    pinMode(_motores[i], LOW);
-    analogWrite(_motores[i] , 0);
-  }
+
+      int IRpin = 3;  //Sensor infrarrojo en el pin 3
+      IRrecv irrecv(IRpin);  
+      decode_results results;
+
+
+
+SoftwareSerial mySerial(4, 7); //Iniciar la transmisión de datos para el MP3 RX, TX
+
+void setup{
+  irrecv.enableIRIn();
+
+pinMode(Motorbase, LOW);
+pinMode(Motormedio, LOW);
+
 }
 
-void loop() {
-  receiveIR();
-  actualizarVibracion();
-
+void loop {
+      ActualizarMotores();
+      }
+void ActualizarMotores(){
+           if (_vibrando==true){
+            analogWrite(Motorbase,_vibracionActualMB);
+            analogWrite(Motormedio,_vibracionActualMM);
+      }
 }
-
-void vibrar(long intensidadInicio, long intensidadFin, byte motor, int cantidad, long tiempoInicio, long tiempoFin) {
-vibrando = true;
-}
-
-void actualizarVibracion() {
- if (vibrando=true){
-  analogWrite(_motores[motor], intensidad)
-}}
 
 void receiveIR() {
   // Aca el llamado a la funcion que lee el IR, te guardas el valor en cmd para saber para donde switchear
-  if (irrecv.decode(&results)) {
-    int cmd = results.value;
-    Serial.print(cmd);
-    switch (cmd) {
-
-        //////////////////////////////////FUNCIONES/////////////////////////////////
-
-    }
-    irrecv.resume();
+  if (irrecv.decode(&results)){
+  int cmd = results.value;
+  Serial.print(cmd);
+  switch(cmd){
+    case 2064:
+      ActivarMotor("Motorbase",0,255,300,1);
+      break;
+    case 2065:
+      ActivarMotor("Motorbase",0,255,3000,5);
+      break;
+    case 2080:
+      ActivarMotor("Motorbase",0,255,300,3);
+      break;
+    
   }
+  irrecv.resume();
+}
+}
+
+void ActivarMotor(motor,inicio,fin,duracion,veces){ // Definir los parámetros básicos que afectaran al sistema compuesto por los motores
+   _ultimo = millis();
+   _vibrando = true;    //Levantar un flag de activación
+   _ultimaVibracionMB = _vibracionActualMB;
+   _ultimaVibracionMM = _vibracionActualMM;
+   _tiempotrans = duracion; //Pasar el valor de la variable a global
+   _ahora = millis();   //Setear _ahora equivalente a la duración en ms actuales desde que el procesador se inició
+   _indice = floor(duracion/(_ahora - _ultimo)) // Obtener la fracción de la transición  //5000 /(10000 - 0)
+      if (motor == "Motorbase") {
+            _vibracionActualMB = ((fin - _ultimaVibracionMB) / _indice) + _ultimaVibracionMB;
+      }
+   }
 }
