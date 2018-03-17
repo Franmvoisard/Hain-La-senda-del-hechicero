@@ -1,3 +1,24 @@
+//Definiciones
+ #define Vol_plus 2064;  //[PODESIRNOS]
+ #define Vol_min 2065;   //[TEGUSTANLOSPIRATAS]
+ #define Ch_plus 2080;   //[PODESVERNOS]
+ #define Ch_min 2081;    //[QUERESPELEAR]  
+ #define Uno 2049;       //[TENESALMA] 
+ #define Dos 2050;       //[SOMOSAMIGOS] 
+ #define Tres 2051;      //[CORAZONLENTO]
+ #define Cuatro 2052;    //[CORAZONRAPIDO] 
+ #define Cinco 2053;     //[VARITAENOJO] 
+ #define Seis 2054;      //[VIENTO] 
+ #define Siete 2055;     //[PAJAROS]
+ #define Ocho 2056;      //[POSESION]
+ #define Nueve 2057;     //[GIROSCOPIO]
+ #define motorbase 5;    //Micromotor vibrador en el pin 5 de Arduino.
+ #define motormedio 6;   //Motor en el pin 6 del Arduino
+ #define INTERRUPT_PIN 3;//Pin de interrupción (INT de Giroscopio como D2 de arduino
+ #define LedRojo 6;      //Pin de Led Rojo
+ #define LedVerde 9;     //Pin de Led verde
+ #define LedAzul 10;     //Pin de Led Azul
+
 //Librerías
 #include "I2Cdev.h"
 #include <IRremote.h>
@@ -17,6 +38,8 @@ int _vibracionActualMM = 0;
 int _ultimaVibracionMB = 0;
 int _ultimaVibracionMM = 0;
 bool _vibrando = false;
+unsigned long int _tiempotrans= 0;
+int _indice = 0;
 
 
       int IRpin = 3;  //Sensor infrarrojo en el pin 3
@@ -27,17 +50,17 @@ bool _vibrando = false;
 
 SoftwareSerial mySerial(4, 7); //Iniciar la transmisión de datos para el MP3 RX, TX
 
-void setup{
-  irrecv.enableIRIn();
-
+void setup(){
+irrecv.enableIRIn();
 pinMode(Motorbase, LOW);
 pinMode(Motormedio, LOW);
 
 }
 
-void loop {
+void loop() {
       ActualizarMotores();
       }
+      
 void ActualizarMotores(){
            if (_vibrando==true){
             analogWrite(Motorbase,_vibracionActualMB);
@@ -52,13 +75,13 @@ void receiveIR() {
   Serial.print(cmd);
   switch(cmd){
     case 2064:
-      ActivarMotor("Motorbase",0,255,300,1);
+      ActivarMotor("5",0,255,300,1);
       break;
     case 2065:
-      ActivarMotor("Motorbase",0,255,3000,5);
+      ActivarMotor("6",0,255,3000,5);
       break;
     case 2080:
-      ActivarMotor("Motorbase",0,255,300,3);
+      ActivarMotor("5",0,255,300,3);
       break;
     
   }
@@ -66,16 +89,20 @@ void receiveIR() {
 }
 }
 
-void ActivarMotor(motor,inicio,fin,duracion,veces){ // Definir los parámetros básicos que afectaran al sistema compuesto por los motores
+void ActivarMotor(int motor,int inicio, int fin, long duracion, int veces){ // Definir los parámetros básicos que afectaran al sistema compuesto por los motores
    _ultimo = millis();
    _vibrando = true;    //Levantar un flag de activación
    _ultimaVibracionMB = _vibracionActualMB;
    _ultimaVibracionMM = _vibracionActualMM;
    _tiempotrans = duracion; //Pasar el valor de la variable a global
    _ahora = millis();   //Setear _ahora equivalente a la duración en ms actuales desde que el procesador se inició
-   _indice = floor(duracion/(_ahora - _ultimo)) // Obtener la fracción de la transición  //5000 /(10000 - 0)
-      if (motor == "Motorbase") {
+   _indice = floor(duracion /(_ahora - _ultimo)); // Obtener la fracción de la transición  //5000 /(10000 - 0)
+   if ((_ahora - _ultimo) < duracion){
+   if (motor == 5) {
             _vibracionActualMB = ((fin - _ultimaVibracionMB) / _indice) + _ultimaVibracionMB;
+      }
+      else {
+            _vibracionActualMM = ((fin - _ultimaVibracionMM)/ _indice) + _ultimaVibracionMM;
       }
    }
 }
