@@ -1,24 +1,3 @@
-//Definiciones
- #define Vol_plus 2064;  //[PODESIRNOS]
- #define Vol_min 2065;   //[TEGUSTANLOSPIRATAS]
- #define Ch_plus 2080;   //[PODESVERNOS]
- #define Ch_min 2081;    //[QUERESPELEAR]  
- #define Uno 2049;       //[TENESALMA] 
- #define Dos 2050;       //[SOMOSAMIGOS] 
- #define Tres 2051;      //[CORAZONLENTO]
- #define Cuatro 2052;    //[CORAZONRAPIDO] 
- #define Cinco 2053;     //[VARITAENOJO] 
- #define Seis 2054;      //[VIENTO] 
- #define Siete 2055;     //[PAJAROS]
- #define Ocho 2056;      //[POSESION]
- #define Nueve 2057;     //[GIROSCOPIO]
- #define motorbase 5;    //Micromotor vibrador en el pin 5 de Arduino.
- #define motormedio 6;   //Motor en el pin 6 del Arduino
- #define INTERRUPT_PIN 3;//Pin de interrupción (INT de Giroscopio como D2 de arduino
- #define LedRojo 6;      //Pin de Led Rojo
- #define LedVerde 9;     //Pin de Led verde
- #define LedAzul 10;     //Pin de Led Azul
-
 //Librerías
 #include "I2Cdev.h"
 #include <IRremote.h>
