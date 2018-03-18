@@ -29,6 +29,7 @@
 
 unsigned long int _ahora = 0;
 unsigned long int _ultimo = 0;
+float _indice = 0;
 
 const byte Motorbase = 5;
 const byte Motormedio = 6;
@@ -37,9 +38,16 @@ int _vibracionActualMB = 0;
 int _vibracionActualMM = 0;
 int _ultimaVibracionMB = 0;
 int _ultimaVibracionMM = 0;
+
 bool _vibrando = false;
+
+/////////////Flags/////////////
+bool _funcion1 = false;
+bool _funcion2 = false;
+bool _funcion3 = false;
+
+
 unsigned long int _tiempotrans= 0;
-int _indice = 0;
 
 
       int IRpin = 3;  //Sensor infrarrojo en el pin 3
@@ -54,17 +62,44 @@ void setup(){
 irrecv.enableIRIn();
 pinMode(Motorbase, LOW);
 pinMode(Motormedio, LOW);
-
+Serial.begin(9600);
 }
 
 void loop() {
+    Serial.println("Ahora, ultimo, vibracionActualMB, vibracionActualMM,Ahora-ultimo,indice");
+      Serial.println("   ");
+      Serial.print(_ahora);
+      Serial.print("    ");
+      Serial.print(_ultimo);
+      Serial.print("    ");
+      Serial.print(_vibracionActualMB);
+      Serial.print("    ");
+      Serial.print(_vibracionActualMM);
+      Serial.print("    ");
+      Serial.print(_ahora -_ultimo);
+      Serial.print("    ");
+      Serial.print(_indice);
+      Serial.print("    ");
+      _ahora = millis();
+      receiveIR();
       ActualizarMotores();
-      }
+}
       
 void ActualizarMotores(){
-           if (_vibrando==true){
+      if (_vibrando==true){
+            
             analogWrite(Motorbase,_vibracionActualMB);
             analogWrite(Motormedio,_vibracionActualMM);
+            if (_funcion1 == true) ActivarMotor(6,0,255,10000,1);
+             if (_funcion2 == true) ActivarMotor(6,255,0,500,1);
+              if (_funcion3 == true) ActivarMotor(6,0,255,300,1);
+      }
+
+      else {
+            _ultimo = _ahora;
+            if (_funcion1 == true) _vibrando = true;
+            if (_funcion2 == true) _vibrando = true;
+            if (_funcion3 == true) _vibrando = true;
       }
 }
 
@@ -72,16 +107,18 @@ void receiveIR() {
   // Aca el llamado a la funcion que lee el IR, te guardas el valor en cmd para saber para donde switchear
   if (irrecv.decode(&results)){
   int cmd = results.value;
-  Serial.print(cmd);
+  Serial.println(" ");
+  Serial.println("Codigo: ");
+  Serial.println(cmd);
   switch(cmd){
     case 2064:
-      ActivarMotor("5",0,255,300,1);
+    _funcion1 = true;
       break;
     case 2065:
-      ActivarMotor("6",0,255,3000,5);
+    _funcion2 = true;
       break;
     case 2080:
-      ActivarMotor("5",0,255,300,3);
+    _funcion3 = true;
       break;
     
   }
@@ -89,20 +126,28 @@ void receiveIR() {
 }
 }
 
-void ActivarMotor(int motor,int inicio, int fin, long duracion, int veces){ // Definir los parámetros básicos que afectaran al sistema compuesto por los motores
-   _ultimo = millis();
-   _vibrando = true;    //Levantar un flag de activación
-   _ultimaVibracionMB = _vibracionActualMB;
-   _ultimaVibracionMM = _vibracionActualMM;
-   _tiempotrans = duracion; //Pasar el valor de la variable a global
-   _ahora = millis();   //Setear _ahora equivalente a la duración en ms actuales desde que el procesador se inició
-   _indice = floor(duracion /(_ahora - _ultimo)); // Obtener la fracción de la transición  //5000 /(10000 - 0)
-   if ((_ahora - _ultimo) < duracion){
-   if (motor == 5) {
-            _vibracionActualMB = ((fin - _ultimaVibracionMB) / _indice) + _ultimaVibracionMB;
+void ActivarMotor(int motor,int inicio, int fin, int duracion, int veces){ // Definir los parámetros básicos que afectaran al sistema compuesto por los motores
+
+   if (_indice < 1){
+      
+      _indice = ((float)(_ahora - _ultimo))/ (float)duracion;
+            
+      if (motor == 5) {                                                            
+            _vibracionActualMB =  (inicio + (_indice * (fin-inicio)));
       }
       else {
-            _vibracionActualMM = ((fin - _ultimaVibracionMM)/ _indice) + _ultimaVibracionMM;
+             _vibracionActualMM = (inicio + (_indice * (fin-inicio)));
       }
    }
+   else {
+    analogWrite(5,0);
+    analogWrite(6,0);
+    _vibracionActualMB = 0;
+    _vibracionActualMM = 0;
+    _vibrando = false;
+    _indice = 0;
+    _funcion1=false;
+    _funcion2=false;
+    _funcion3=false;
+    }
 }
